@@ -1,4 +1,4 @@
-// controller.pde ---
+// player.pde ---
 
 // Copyright (C) 2017 Hussein Ait-Lahcen
 
@@ -17,38 +17,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-interface Controller {
-  PVector impulsion();
-}
-
-class AiController implements Controller {
-  @Override
-  PVector impulsion() {
-    return new PVector(0, 0);
-  }
-}
-
-class KeyboardController implements Controller {
-  @Override
-  PVector impulsion() {
-    return new PVector(impulsionX(), impulsionY());
-  }
-  int impulsionY() {
-    if(isKeyPressed(DOWN)) {
-      return 1;
-    }
-    else if(isKeyPressed(UP)) {
-      return -1;
-    }
-    return 0;
-  }
-  int impulsionX() {
-    if(isKeyPressed(RIGHT)) {
-      return 1;
-    }
-    else if(isKeyPressed(LEFT)) {
-      return -1;
-    }
-    return 0;
+enum Player {
+  NEUTRAL(-1, "neutral"),
+  ENEMY(0, "enemy"),
+  ALLY(1, "ally");
+  final int id;
+  final String name;
+  Player(final int id, final String name) {
+    this.id = id;
+    this.name = name;
   }
 }

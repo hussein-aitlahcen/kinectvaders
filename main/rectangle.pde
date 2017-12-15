@@ -1,4 +1,4 @@
-// controller.pde ---
+// rectangle.pde ---
 
 // Copyright (C) 2017 Hussein Ait-Lahcen
 
@@ -17,38 +17,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-interface Controller {
-  PVector impulsion();
-}
+final class Rectangle {
+  final float x;
+  final float y;
+  final float width;
+  final float height;
+  Rectangle(final float x, final float y, final float width, final float height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
 
-class AiController implements Controller {
-  @Override
-  PVector impulsion() {
-    return new PVector(0, 0);
-  }
-}
-
-class KeyboardController implements Controller {
-  @Override
-  PVector impulsion() {
-    return new PVector(impulsionX(), impulsionY());
-  }
-  int impulsionY() {
-    if(isKeyPressed(DOWN)) {
-      return 1;
+  boolean intersect(final Rectangle other) {
+    if(x + width < other.x) {
+      return false;
     }
-    else if(isKeyPressed(UP)) {
-      return -1;
+    if(other.x + other.width < x) {
+      return false;
     }
-    return 0;
-  }
-  int impulsionX() {
-    if(isKeyPressed(RIGHT)) {
-      return 1;
+    if(y + height < other.y) {
+      return false;
     }
-    else if(isKeyPressed(LEFT)) {
-      return -1;
+    if(other.y + other.height < y) {
+      return false;
     }
-    return 0;
+    return true;
   }
 }

@@ -24,6 +24,12 @@ class Sprite {
     this.img = img;
     this.name = name;
   }
+  int width() {
+    return img.width;
+  }
+  int height() {
+    return img.height;
+  }
 }
 
 class Atlas {

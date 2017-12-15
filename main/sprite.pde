@@ -1,4 +1,4 @@
-// controller.pde ---
+// sprite.pde ---
 
 // Copyright (C) 2017 Hussein Ait-Lahcen
 
@@ -17,38 +17,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-interface Controller {
-  PVector impulsion();
+interface Visible extends GameEntity {
+  Sprite getSprite();
 }
 
-class AiController implements Controller {
+class SpritedObject extends GameEntityWrap<GameEntity> implements Visible {
+  final Sprite sprite;
+  SpritedObject(final GameEntity origin, final Sprite sprite) {
+    super(origin);
+    this.sprite = sprite;
+  }
   @Override
-  PVector impulsion() {
-    return new PVector(0, 0);
+  void beginDraw() {
+    super.beginDraw();
+    image(this.sprite.img, 0, 0);
   }
-}
-
-class KeyboardController implements Controller {
-  @Override
-  PVector impulsion() {
-    return new PVector(impulsionX(), impulsionY());
-  }
-  int impulsionY() {
-    if(isKeyPressed(DOWN)) {
-      return 1;
-    }
-    else if(isKeyPressed(UP)) {
-      return -1;
-    }
-    return 0;
-  }
-  int impulsionX() {
-    if(isKeyPressed(RIGHT)) {
-      return 1;
-    }
-    else if(isKeyPressed(LEFT)) {
-      return -1;
-    }
-    return 0;
+  Sprite getSprite() {
+    return this.sprite;
   }
 }
