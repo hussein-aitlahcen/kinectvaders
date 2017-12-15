@@ -50,6 +50,15 @@ class GameImpl extends GameEntityImpl implements Game {
       for(int j = i + 1; j < entities.size(); j++) {
         final GameEntity a = entities.get(i);
         final GameEntity b = entities.get(j);
+        if(a.shouldBeDestroyed()) {
+          onEvent(new DestructionEvent(a));
+        }
+        if(b.shouldBeDestroyed()) {
+          onEvent(new DestructionEvent(b));
+        }
+        if(a.shouldBeDestroyed() || b.shouldBeDestroyed()) {
+          continue;
+        }
         if((a instanceof Collidable) && (b instanceof Collidable)) {
           final Collidable ca = (Collidable)a;
           final Collidable cb = (Collidable)b;
@@ -77,9 +86,19 @@ class GameImpl extends GameEntityImpl implements Game {
       if(event instanceof CollisionEvent) {
         processCollision((CollisionEvent)event);
       }
+      else if(event instanceof DestructionEvent) {
+        processDestruction((DestructionEvent)event);
+      }
     }
   }
   void processCollision(final CollisionEvent event) {
+    if(event.source.owner() != event.target.owner()) {
+      onEvent(new DestructionEvent(event.source));
+      onEvent(new DestructionEvent(event.target));
+    }
+  }
+  void processDestruction(final DestructionEvent event) {
+    this.removeChild(event.entity);
   }
   GameEntity createAlly(final float x, final float y, final String sprite) {
     return createShip(Player.ALLY,

@@ -23,18 +23,23 @@ interface Canon {
 }
 
 interface CanonSpec {
+  float projectileDurability();
   float projectileVelocity();
   float firingRate();
 }
 
 class BasicCanonSpec implements CanonSpec {
   @Override
+  float projectileDurability() {
+    return 2;
+  }
+  @Override
   float projectileVelocity() {
     return 500;
   }
   @Override
   float firingRate() {
-    return 6;
+    return 2;
   }
 }
 
@@ -58,7 +63,8 @@ class BasicCanon implements Canon {
     return new CollisionObject
       (new SpritedObject
        (new DynamicObject
-        (game.createEntity(parent.owner(), parent.getX(), parent.getY()),
+        (new ExpirableObject
+         (game.createEntity(parent.owner(), parent.getX(), parent.getY()), this.spec.projectileDurability()),
          new DummyController(), this.direction),
         this.projectileSprite));
   }

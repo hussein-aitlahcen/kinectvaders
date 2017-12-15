@@ -18,9 +18,11 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 HashMap<Integer, Boolean> keys;
-int nextTick;
-int tickStep;
-float secondsDelta;
+double nextTick;
+double tickStep;
+double lastTick;
+int gameWidth = 1600;
+int gameHeight = 1000;
 Game game;
 
 void setup() {
@@ -28,25 +30,21 @@ void setup() {
   imageMode(CENTER);
   keys = new HashMap<Integer, Boolean>();
   tickStep = 1000 / 128;
-  secondsDelta = tickStep / 1000.0;
   nextTick = 0;
   game = new GameImpl(0, 0);
 }
 
-void computeNextTick() {
-  nextTick = millis() + tickStep;
-}
-
-int elapsed() {
-  return nextTick - millis();
-}
-
 void draw() {
-  while(elapsed() > 0) {};
-  computeNextTick();
-  game.update(secondsDelta);
+  while(millis() < nextTick) {};
+  double begin = millis();
+  float dt = (float)(begin - lastTick) * 0.001;
+  lastTick = begin;
+  game.update(dt);
   game.beginDraw();
   game.endDraw();
+  double end = millis();
+  double lag = end - begin;
+  nextTick = begin + tickStep - lag;
 }
 
 void keyPressed() {

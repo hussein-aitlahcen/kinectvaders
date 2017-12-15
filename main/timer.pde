@@ -1,4 +1,4 @@
-// event.pde ---
+// timer.pde ---
 
 // Copyright (C) 2017 Hussein Ait-Lahcen
 
@@ -17,21 +17,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-abstract class GameEvent {
-}
-
-final class CollisionEvent extends GameEvent {
-  final Collidable source;
-  final Collidable target;
-  CollisionEvent(final Collidable source, final Collidable target) {
-    this.source = source;
-    this.target = target;
+class ExpirableObject extends GameEntityWrap<GameEntity> {
+  float cooldown;
+  ExpirableObject(final GameEntity origin, final float cooldown) {
+    super(origin);
+    this.cooldown = cooldown;
   }
-}
-
-final class DestructionEvent extends GameEvent {
-  final GameEntity entity;
-  DestructionEvent(final GameEntity entity) {
-    this.entity = entity;
+  @Override
+  void update(float dt) {
+    super.update(dt);
+    this.cooldown -= dt;
+    if(this.cooldown <= 0) {
+      this.setDestroyable(true);
+    }
   }
 }

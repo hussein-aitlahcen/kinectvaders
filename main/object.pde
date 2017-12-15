@@ -50,15 +50,18 @@ interface GameEntity extends Composite,
                              Drawable,
                              Identifiable {
   Player owner();
+  void setDestroyable(final boolean destroyable);
+  boolean shouldBeDestroyed();
 }
 
 class GameEntityImpl implements GameEntity {
   final int id;
+  final ArrayList<GameEntity> childs;
+  final Player owner;
   float x;
   float y;
   float angle;
-  final ArrayList<GameEntity> childs;
-  final Player owner;
+  boolean destroyable;
   GameEntityImpl(final Player owner, final int id, final float x, final float y) {
     this(owner, id, x, y, 0);
   }
@@ -68,6 +71,7 @@ class GameEntityImpl implements GameEntity {
     this.y = y;
     this.angle = angle;
     this.owner = owner;
+    this.destroyable = false;
     this.childs = new ArrayList<GameEntity>();
   }
   @Override
@@ -77,6 +81,14 @@ class GameEntityImpl implements GameEntity {
   @Override
   int getId() {
     return this.id;
+  }
+  @Override
+  boolean shouldBeDestroyed() {
+    return this.destroyable;
+  }
+  @Override
+  void setDestroyable(final boolean destroyable) {
+    this.destroyable = destroyable;
   }
   @Override
   ArrayList<GameEntity> children() {
@@ -153,6 +165,14 @@ class GameEntityWrap<T extends GameEntity> implements GameEntity {
   @Override
   int getId() {
     return this.origin.getId();
+  }
+  @Override
+  boolean shouldBeDestroyed() {
+    return this.origin.shouldBeDestroyed();
+  }
+  @Override
+  void setDestroyable(final boolean destroyable) {
+    this.origin.setDestroyable(destroyable);
   }
   @Override
   ArrayList<GameEntity> children() {
