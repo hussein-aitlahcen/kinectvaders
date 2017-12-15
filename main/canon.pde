@@ -16,3 +16,70 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+interface Canon {
+  void update(final float dt);
+  void trigger(final GameEntity entity);
+}
+
+interface CanonSpec {
+  float projectileVelocity();
+  float firingRate();
+}
+
+class BasicCanonSpec implements CanonSpec {
+  @Override
+  float projectileVelocity() {
+    return 500;
+  }
+  @Override
+  float firingRate() {
+    return 6;
+  }
+}
+
+class BasicCanon implements Canon {
+  final CanonSpec spec;
+  final Sprite projectileSprite;
+  final Game game;
+  final PVector direction;
+  float fireCooldown;
+  BasicCanon(final CanonSpec spec, final Sprite projectileSprite, final PVector direction, final Game game) {
+    this.spec = spec;
+    this.projectileSprite = projectileSprite;
+    this.game = game;
+    this.direction = PVector.mult(direction, spec.projectileVelocity());
+    this.fireCooldown = 0;
+  }
+  void update(final float dt) {
+    fireCooldown -= dt;
+  }
+  GameEntity createProjectile(final GameEntity parent) {
+    return new CollisionObject
+      (new SpritedObject
+       (new DynamicObject
+        (game.createEntity(parent.owner(), parent.getX(), parent.getY()),
+         new DummyController(), this.direction),
+        this.projectileSprite));
+  }
+  void trigger(final GameEntity entity) {
+    if(fireCooldown <= 0) {
+      fireCooldown = 1 / spec.firingRate();
+      game.addChild(createProjectile(entity));
+    }
+  }
+}
+
+class CanonObject extends GameEntityWrap<GameEntity> {
+  final Canon canon;
+  CanonObject(final GameEntity origin, final Canon canon) {
+    super(origin);
+    this.canon = canon;
+  }
+  @Override
+  void update(float dt) {
+    super.update(dt);
+    canon.update(dt);
+    canon.trigger(this);
+  }
+}

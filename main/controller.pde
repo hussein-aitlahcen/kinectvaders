@@ -21,6 +21,13 @@ interface Controller {
   PVector impulsion();
 }
 
+class DummyController implements Controller {
+  @Override
+  PVector impulsion() {
+    return new PVector(0, 0);
+  }
+}
+
 class AiController implements Controller {
   @Override
   PVector impulsion() {

@@ -29,10 +29,16 @@ class DynamicObject extends GameEntityWrap<GameEntity> implements Moveable {
   PVector velocity;
   PVector maxVelocity;
   DynamicObject(final GameEntity origin, final Controller controller) {
+    this(origin, controller, new PVector(0, 0), new PVector(1000, 1000));
+  }
+  DynamicObject(final GameEntity origin, final Controller controller, final PVector velocity) {
+    this(origin, controller, velocity, velocity);
+  }
+  DynamicObject(final GameEntity origin, final Controller controller, final PVector velocity, final PVector maxVelocity) {
     super(origin);
-    this.velocity = new PVector(0, 0);
-    this.maxVelocity = new PVector(1000, 1000);
     this.controller = controller;
+    this.velocity = velocity;
+    this.maxVelocity = maxVelocity;
   }
   @Override
   void update(final float dt) {

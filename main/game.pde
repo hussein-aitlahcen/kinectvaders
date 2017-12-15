@@ -21,6 +21,7 @@ import java.util.ArrayDeque;
 
 interface Game extends GameEntity {
   void onEvent(final GameEvent event);
+  GameEntity createEntity(final Player owner, final float x, final float y);
 }
 
 class GameImpl extends GameEntityImpl implements Game {
@@ -58,29 +59,67 @@ class GameImpl extends GameEntityImpl implements Game {
         }
       }
     }
+    processEvents();
   }
   @Override
   void beginDraw() {
     super.beginDraw();
+    noStroke();
     background(127);
   }
   @Override
   void onEvent(GameEvent event) {
     this.eventQueue.offer(event);
   }
-  GameEntity createAlly(final int x, final int y, final String sprite) {
-    return createShip(Player.ALLY, x, y, new KeyboardController(), sprite);
+  void processEvents() {
+    while(this.eventQueue.size() > 0) {
+      final GameEvent event = this.eventQueue.poll();
+      if(event instanceof CollisionEvent) {
+        processCollision((CollisionEvent)event);
+      }
+    }
   }
-  GameEntity createEnemy(final int x, final int y, final String sprite) {
-    return createShip(Player.ENEMY, x, y, new AiController(), sprite);
+  void processCollision(final CollisionEvent event) {
   }
-  GameEntity createShip(final Player player, final int x, final int y, final Controller controller, final String sprite) {
+  GameEntity createAlly(final float x, final float y, final String sprite) {
+    return createShip(Player.ALLY,
+                      x,
+                      y,
+                      new KeyboardController(),
+                      sprite,
+                      new BasicCanon(new BasicCanonSpec(),
+                                     atlas.get("laserBlue03.png"),
+                                     new PVector(0, -1),
+                                     this));
+  }
+  GameEntity createEnemy(final float x, final float y, final String sprite) {
+      return createShip(Player.ENEMY,
+                        x,
+                        y,
+                        new AiController(),
+                        sprite,
+                        new BasicCanon(new BasicCanonSpec(),
+                                       atlas.get("laserBlue03.png"),
+                                       new PVector(0, 1),
+                                       this));
+  }
+  GameEntity createShip(final Player player,
+                        final float x,
+                        final float y,
+                        final Controller controller,
+                        final String shipSprite,
+                        final Canon canon) {
     return new CollisionObject
       (new SpritedObject
-       (new FrictionObject
-        (new DynamicObject
-         (new GameEntityImpl(player, nextEntityId++, x, y),
-          controller)),
-        atlas.get(sprite)));
+       (new CanonObject
+        (new FrictionObject
+         (new DynamicObject
+          (createEntity(player, x, y),
+           controller)),
+         canon),
+        atlas.get(shipSprite)));
+  }
+  GameEntity createEntity(final Player player, final float x, final float y) {
+    return new GameEntityImpl(player, nextEntityId++, x, y);
   }
 }

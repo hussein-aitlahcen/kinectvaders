@@ -49,6 +49,7 @@ interface GameEntity extends Composite,
                              Positionable,
                              Drawable,
                              Identifiable {
+  Player owner();
 }
 
 class GameEntityImpl implements GameEntity {
@@ -58,16 +59,20 @@ class GameEntityImpl implements GameEntity {
   float angle;
   final ArrayList<GameEntity> childs;
   final Player owner;
-  GameEntityImpl(final Player owner, final int id, final int x, final int y) {
+  GameEntityImpl(final Player owner, final int id, final float x, final float y) {
     this(owner, id, x, y, 0);
   }
-  GameEntityImpl(final Player owner, final int id, final int x, final int y, final float angle) {
+  GameEntityImpl(final Player owner, final int id, final float x, final float y, final float angle) {
     this.id = id;
     this.x = x;
     this.y = y;
     this.angle = angle;
     this.owner = owner;
     this.childs = new ArrayList<GameEntity>();
+  }
+  @Override
+  Player owner() {
+    return this.owner;
   }
   @Override
   int getId() {
@@ -84,8 +89,8 @@ class GameEntityImpl implements GameEntity {
   }
   @Override
   void update(final float dt) {
-    for(GameEntity child : this.childs) {
-      child.update(dt);
+    for(int i = this.childs.size() - 1; i >= 0; i--) {
+      this.childs.get(i).update(dt);
     }
   }
   @Override
@@ -140,6 +145,10 @@ class GameEntityWrap<T extends GameEntity> implements GameEntity {
   final T origin;
   GameEntityWrap(final T origin) {
     this.origin = origin;
+  }
+  @Override
+  Player owner() {
+    return this.origin.owner();
   }
   @Override
   int getId() {
