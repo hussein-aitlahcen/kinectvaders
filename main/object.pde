@@ -76,7 +76,7 @@ class GameEntityImpl implements GameEntity {
   @Override
   ArrayList<GameEntity> children() {
     ArrayList<GameEntity> children = new ArrayList<GameEntity>();
-    children.add(this);
+    children.addAll(this.childs);
     for(GameEntity child : this.childs) {
       children.addAll(child.children());
     }

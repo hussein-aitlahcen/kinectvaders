@@ -30,18 +30,17 @@ final class Rectangle {
   }
 
   boolean intersect(final Rectangle other) {
-    if(x + width < other.x) {
+    if(x + width < other.x || y + height < other.y) {
       return false;
     }
-    if(other.x + other.width < x) {
-      return false;
-    }
-    if(y + height < other.y) {
-      return false;
-    }
-    if(other.y + other.height < y) {
+    if(other.x + other.width < x || other.y + other.height < y) {
       return false;
     }
     return true;
+  }
+
+  @Override
+  String toString() {
+    return "x=" + x + ", y=" + y + ", w=" + width + ", h=" + height;
   }
 }

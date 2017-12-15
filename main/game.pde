@@ -36,8 +36,28 @@ class GameImpl extends GameEntityImpl implements Game {
     addChild(createEnemy(400, 200, "enemyBlack1.png"));
   }
   @Override
+  ArrayList<GameEntity> children() {
+    final ArrayList<GameEntity> entities = super.children();
+    entities.remove(this);
+    return entities;
+  }
+  @Override
   void update(float dt) {
     super.update(dt);
+    final ArrayList<GameEntity> entities = children();
+    for(int i = 0; i < entities.size() - 1; i++) {
+      for(int j = i + 1; j < entities.size(); j++) {
+        final GameEntity a = entities.get(i);
+        final GameEntity b = entities.get(j);
+        if((a instanceof Collidable) && (b instanceof Collidable)) {
+          final Collidable ca = (Collidable)a;
+          final Collidable cb = (Collidable)b;
+          if(ca.collides(cb)) {
+            onEvent(new CollisionEvent(ca, cb));
+          }
+        }
+      }
+    }
   }
   @Override
   void beginDraw() {
@@ -55,11 +75,12 @@ class GameImpl extends GameEntityImpl implements Game {
     return createShip(Player.ENEMY, x, y, new AiController(), sprite);
   }
   GameEntity createShip(final Player player, final int x, final int y, final Controller controller, final String sprite) {
-    return new FrictionObject
-      (new DynamicObject
-       (new SpritedObject
-        (new GameEntityImpl(player, nextEntityId++, x, y),
-         atlas.get(sprite)),
-        controller));
+    return new CollisionObject
+      (new SpritedObject
+       (new FrictionObject
+        (new DynamicObject
+         (new GameEntityImpl(player, nextEntityId++, x, y),
+          controller)),
+        atlas.get(sprite)));
   }
 }
