@@ -46,9 +46,9 @@ class CollisionObject extends GameEntityWrap<Visible> implements Collidable {
   @Override
   void beginDraw() {
     super.beginDraw();
-    final Rectangle area = this.getArea();
-    fill(255, 255, 255, 50);
-    rect(-area.width / 2, -area.height / 2, area.width, area.height);
+    // final Rectangle area = this.getArea();
+    // fill(255, 255, 255, 50);
+    // rect(-area.width / 2, -area.height / 2, area.width, area.height);
   }
   @Override
   Sprite getSprite() {
