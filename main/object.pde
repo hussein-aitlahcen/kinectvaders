@@ -208,10 +208,18 @@ class GameEntityImpl implements GameEntity {
   }
   @Override
   boolean intersect(final Rectangle other) {
-    if(this.getX() + this.getWidth() < other.getX() || this.getY() + this.getHeight() < other.getY()) {
+    final float halfWidth = this.getWidth() / 2;
+    final float halfHeight = this.getHeight() / 2;
+    final float upperLeftX = this.getX() - halfWidth;
+    final float upperLeftY = this.getY() - halfHeight;
+    final float halfWidthA = other.getWidth() / 2;
+    final float halfHeightA = other.getHeight() / 2;
+    final float upperLeftXA = other.getX() - halfWidthA;
+    final float upperLeftYA = other.getY() - halfHeightA;
+    if(upperLeftX + this.getWidth() < upperLeftXA || upperLeftY + this.getHeight() < upperLeftYA) {
       return false;
     }
-    if(other.getX() + other.getWidth() < this.getX() || other.getY() + other.getHeight() < this.getY()) {
+    if(upperLeftXA + other.getWidth() < upperLeftX || upperLeftYA + other.getHeight() < upperLeftYA) {
       return false;
     }
     return true;
