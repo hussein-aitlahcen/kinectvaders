@@ -17,60 +17,46 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-interface Collidable extends GameEntity, Visible {
-  Rectangle getArea();
-  boolean collides(final Collidable target);
+interface CollisionBehavior {
+  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b);
 }
 
-class NonCollisionObject extends GameEntityWrap<Visible> implements Collidable {
-  NonCollisionObject(final Visible origin) {
-    super(origin);
+interface CollisionAtomicBehavior {
+  GameEvent collides(final GameEntity a, final GameEntity b);
+}
+
+final class CompositeCollisionBehavior implements CollisionBehavior {
+  final ArrayList<CollisionAtomicBehavior> atomicBehaviors;
+  CompositeCollisionBehavior(final ArrayList<CollisionAtomicBehavior> atomicBehaviors) {
+    this.atomicBehaviors = atomicBehaviors;
   }
   @Override
-  Sprite getSprite() {
-    return this.origin.getSprite();
-  }
-  Rectangle getArea() {
-    return new Rectangle(0, 0, 0, 0);
-  }
-  @Override
-  boolean collides(final Collidable target) {
-    return false;
+  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b) {
+    final ArrayList<GameEvent> events = new ArrayList<GameEvent>();
+    for(CollisionAtomicBehavior atomicBehavior : this.atomicBehaviors) {
+      events.add(atomicBehavior.collides(a, b));
+    }
+    return events;
   }
 }
 
-class CollisionObject extends GameEntityWrap<Visible> implements Collidable {
-  CollisionObject(final Visible origin) {
-    super(origin);
+final class DestroyOnEntityCollision implements CollisionAtomicBehavior {
+  final EntityType type;
+  DestroyOnEntityCollision(final EntityType type) {
+    this.type = type;
   }
   @Override
-  void beginDraw() {
-    super.beginDraw();
-    // final Rectangle area = this.getArea();
-    // fill(255, 255, 255, 50);
-    // rect(-area.width / 2, -area.height / 2, area.width, area.height);
+  GameEvent collides(final GameEntity a, final GameEntity b) {
+    if(b.getType() == this.type) {
+      return new DestructionEvent(a);
+    }
+    return GameEvent.BASIC_NO_OPERATION;
   }
-  @Override
-  Sprite getSprite() {
-    return this.origin.getSprite();
-  }
-  @Override
-  Rectangle getArea() {
-    final Sprite sprite = this.getSprite();
-    final float spriteHalfWidth = sprite.width() / 2.0;
-    final float spriteHalfHeight = sprite.height() / 2.0;
-    return new Rectangle(getX() - spriteHalfWidth,
-                         getY() - spriteHalfHeight,
-                         sprite.width(),
-                         sprite.height());
+}
 
-  }
+final class DummyCollisionBehavior implements CollisionBehavior {
   @Override
-  boolean collides(final Collidable target) {
-    if(target instanceof NonCollisionObject)
-      return false;
-    final Rectangle sourceArea = getArea();
-    final Rectangle targetArea = target.getArea();
-    return sourceArea.intersect(targetArea);
+  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b) {
+    return new ArrayList<GameEvent>();
   }
 }

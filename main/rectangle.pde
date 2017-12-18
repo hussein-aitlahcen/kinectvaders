@@ -17,30 +17,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-final class Rectangle {
-  final float x;
-  final float y;
-  final float width;
-  final float height;
-  Rectangle(final float x, final float y, final float width, final float height) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-  }
-
-  boolean intersect(final Rectangle other) {
-    if(x + width < other.x || y + height < other.y) {
-      return false;
-    }
-    if(other.x + other.width < x || other.y + other.height < y) {
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  String toString() {
-    return "x=" + x + ", y=" + y + ", w=" + width + ", h=" + height;
-  }
+interface Rectangle {
+  float getX();
+  float getY();
+  float getWidth();
+  float getHeight();
+  boolean intersect(final Rectangle other);
 }

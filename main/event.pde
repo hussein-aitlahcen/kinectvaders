@@ -17,21 +17,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-abstract class GameEvent {
+interface GameEvent {
+    static final GameEvent BASIC_NO_OPERATION = new GameEvent() {};
 }
 
-final class CollisionEvent extends GameEvent {
-  final Collidable source;
-  final Collidable target;
-  CollisionEvent(final Collidable source, final Collidable target) {
-    this.source = source;
-    this.target = target;
-  }
-}
-
-final class DestructionEvent extends GameEvent {
-  final GameEntity entity;
-  DestructionEvent(final GameEntity entity) {
-    this.entity = entity;
-  }
+final class DestructionEvent implements GameEvent {
+    final GameEntity entity;
+    DestructionEvent(final GameEntity entity) {
+        this.entity = entity;
+    }
 }

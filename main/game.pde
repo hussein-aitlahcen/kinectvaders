@@ -17,11 +17,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import java.util.Arrays;
 import java.util.ArrayDeque;
 
 interface Game extends GameEntity {
-  void onEvent(final GameEvent event);
-  GameEntity createEntity(final Player owner, final float x, final float y);
+  void onEvents(final ArrayList<GameEvent> event);
+  GameEntity createEntity(final EntityType type,
+                          final Player player,
+                          final Sprite sprite,
+                          final float x,
+                          final float y);
 }
 
 class GameImpl extends GameEntityImpl implements Game {
@@ -29,11 +34,12 @@ class GameImpl extends GameEntityImpl implements Game {
   final ArrayDeque<GameEvent> eventQueue;
   final Atlas atlas;
   GameImpl(int x, int y) {
-    super(Player.NEUTRAL, 0, x, y);
+    super(EntityType.WORLD, Player.NEUTRAL, 0, x, y, new DummyCollisionBehavior());
     this.nextEntityId = 1;
     this.eventQueue = new ArrayDeque<GameEvent>();
     this.atlas = setupAtlas();
     addChild(createAlly(400, 500, "playerShip1_green.png"));
+    addChild(createStatic(Player.ENEMY, 400, 600, "meteorBrown_big1.png"));
     addChild(createEnemy(400, 200, "enemyBlack1.png"));
   }
   @Override
@@ -43,7 +49,7 @@ class GameImpl extends GameEntityImpl implements Game {
     return entities;
   }
   @Override
-  void update(float dt) {
+  void update(final float dt) {
     super.update(dt);
     final ArrayList<GameEntity> entities = children();
     for(int i = 0; i < entities.size() - 1; i++) {
@@ -52,18 +58,15 @@ class GameImpl extends GameEntityImpl implements Game {
         final GameEntity b = entities.get(j);
         if(a.shouldBeDestroyed()) {
           onEvent(new DestructionEvent(a));
-        }
-        if(b.shouldBeDestroyed()) {
-          onEvent(new DestructionEvent(b));
-        }
-        if(a.shouldBeDestroyed() || b.shouldBeDestroyed()) {
           continue;
         }
-        if((a instanceof Collidable) && (b instanceof Collidable)) {
-          final Collidable ca = (Collidable)a;
-          final Collidable cb = (Collidable)b;
-          if(ca.collides(cb)) {
-            onEvent(new CollisionEvent(ca, cb));
+        if(b.shouldBeDestroyed()) {
+          continue;
+        }
+        if(a.owner() != b.owner()) {
+          if(a.intersect(b) && b.intersect(a)) {
+            onEvents(a.collides(a, b));
+            onEvents(b.collides(b, a));
           }
         }
       }
@@ -76,31 +79,29 @@ class GameImpl extends GameEntityImpl implements Game {
     noStroke();
     background(127);
   }
-  @Override
-  void onEvent(GameEvent event) {
+  void onEvent(final GameEvent event) {
     this.eventQueue.offer(event);
+  }
+  @Override
+  void onEvents(final ArrayList<GameEvent> events) {
+    for(GameEvent event : events) {
+      onEvent(event);
+    }
   }
   void processEvents() {
     while(this.eventQueue.size() > 0) {
       final GameEvent event = this.eventQueue.poll();
-      if(event instanceof CollisionEvent) {
-        processCollision((CollisionEvent)event);
-      }
-      else if(event instanceof DestructionEvent) {
+      if(event instanceof DestructionEvent) {
         processDestruction((DestructionEvent)event);
       }
-    }
-  }
-  void processCollision(final CollisionEvent event) {
-    if(event.source.owner() != event.target.owner()) {
-      onEvent(new DestructionEvent(event.source));
-      onEvent(new DestructionEvent(event.target));
     }
   }
   void processDestruction(final DestructionEvent event) {
     this.removeChild(event.entity);
   }
-  GameEntity createAlly(final float x, final float y, final String sprite) {
+  GameEntity createAlly(final float x,
+                        final float y,
+                        final String sprite) {
     return createShip(Player.ALLY,
                       x,
                       y,
@@ -111,16 +112,28 @@ class GameImpl extends GameEntityImpl implements Game {
                                      new PVector(0, -1),
                                      this));
   }
-  GameEntity createEnemy(final float x, final float y, final String sprite) {
+  GameEntity createEnemy(final float x,
+                         final float y,
+                         final String sprite) {
       return createShip(Player.ENEMY,
                         x,
                         y,
                         new AiController(),
                         sprite,
                         new BasicCanon(new BasicCanonSpec(),
-                                       atlas.get("laserBlue03.png"),
+                                       atlas.get("laserRed03.png"),
                                        new PVector(0, 1),
                                        this));
+  }
+  GameEntity createStatic(final Player owner,
+                          final float x,
+                          final float y,
+                          final String sprite) {
+    return createEntity(EntityType.STATIC,
+                        owner,
+                        atlas.get(sprite),
+                        x,
+                        y);
   }
   GameEntity createShip(final Player player,
                         final float x,
@@ -128,17 +141,33 @@ class GameImpl extends GameEntityImpl implements Game {
                         final Controller controller,
                         final String shipSprite,
                         final Canon canon) {
-    return new CollisionObject
-      (new SpritedObject
-       (new CanonObject
-        (new FrictionObject
-         (new DynamicObject
-          (createEntity(player, x, y),
-           controller)),
-         canon),
-        atlas.get(shipSprite)));
+    return new CanonObject
+      (new FrictionObject
+       (new DynamicObject
+        (createEntity(EntityType.SHIP, player, atlas.get(shipSprite), x, y),
+         controller)),
+       canon);
   }
-  GameEntity createEntity(final Player player, final float x, final float y) {
-    return new GameEntityImpl(player, nextEntityId++, x, y);
+  GameEntity createEntity(final EntityType type,
+                          final Player player,
+                          final Sprite sprite,
+                          final float x,
+                          final float y) {
+    return new SpritedObject
+      (new GameEntityImpl
+       (type,
+        player,
+        nextEntityId++,
+        x,
+        y,
+        sprite.img.width,
+        sprite.img.height,
+        new CompositeCollisionBehavior(composeCollision(new DestroyOnEntityCollision(EntityType.PROJECTILE),
+                                                        new DestroyOnEntityCollision(EntityType.SHIP)))),
+        sprite);
+  }
+
+  ArrayList<CollisionAtomicBehavior> composeCollision(final CollisionAtomicBehavior... behaviors) {
+    return new ArrayList<CollisionAtomicBehavior>(Arrays.asList(behaviors));
   }
 }

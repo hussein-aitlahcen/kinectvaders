@@ -61,31 +61,69 @@ interface Identifiable {
 interface GameEntity extends Composite,
                              Positionable,
                              Drawable,
-                             Identifiable {
+                             Identifiable,
+                             Rectangle {
+  EntityType getType();
   Player owner();
   void setDestroyable(final boolean destroyable);
   boolean shouldBeDestroyed();
+  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b);
 }
 
 class GameEntityImpl implements GameEntity {
   final int id;
+  final EntityType type;
   final ArrayList<GameEntity> childs;
   final Player owner;
+  final CollisionBehavior collisionBehavior;
   float x;
   float y;
   float angle;
+  float height;
+  float width;
   boolean destroyable;
-  GameEntityImpl(final Player owner, final int id, final float x, final float y) {
-    this(owner, id, x, y, 0);
+  GameEntityImpl(final EntityType type,
+                 final Player owner,
+                 final int id,
+                 final float x,
+                 final float y,
+                 final CollisionBehavior collisionBehavior) {
+    this(type, owner, id, x, y, 0, 0, collisionBehavior);
   }
-  GameEntityImpl(final Player owner, final int id, final float x, final float y, final float angle) {
+  GameEntityImpl(final EntityType type,
+                 final Player owner,
+                 final int id,
+                 final float x,
+                 final float y,
+                 final float width,
+                 final float height,
+                 final CollisionBehavior collisionBehavior) {
+    this(type, owner, id, x, y, width, height, 0, collisionBehavior);
+  }
+  GameEntityImpl(final EntityType type,
+                 final Player owner,
+                 final int id,
+                 final float x,
+                 final float y,
+                 final float width,
+                 final float height,
+                 final float angle,
+                 final CollisionBehavior collisionBehavior) {
+    this.type = type;
     this.id = id;
     this.x = x;
     this.y = y;
+    this.width = width;
+    this.height = height;
     this.angle = angle;
     this.owner = owner;
     this.destroyable = false;
+    this.collisionBehavior = collisionBehavior;
     this.childs = new ArrayList<GameEntity>();
+  }
+  @Override
+  EntityType getType() {
+    return this.type;
   }
   @Override
   Player owner() {
@@ -164,6 +202,28 @@ class GameEntityImpl implements GameEntity {
   void setAngle(final float angle) {
     this.angle = angle;
   }
+  @Override
+  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b) {
+    return this.collisionBehavior.collides(a, b);
+  }
+  @Override
+  boolean intersect(final Rectangle other) {
+    if(this.getX() + this.getWidth() < other.getX() || this.getY() + this.getHeight() < other.getY()) {
+      return false;
+    }
+    if(other.getX() + other.getWidth() < this.getX() || other.getY() + other.getHeight() < this.getY()) {
+      return false;
+    }
+    return true;
+  }
+  @Override
+  float getWidth() {
+    return this.width;
+  }
+  @Override
+  float getHeight() {
+    return this.height;
+  }
 }
 
 class GameEntityWrap<T extends GameEntity> implements GameEntity {
@@ -238,5 +298,21 @@ class GameEntityWrap<T extends GameEntity> implements GameEntity {
   @Override
   void setAngle(final float angle) {
     this.origin.setAngle(angle);
+  }
+  @Override
+  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b) {
+    return this.origin.collides(a, b);
+  }
+  @Override
+  boolean intersect(final Rectangle other) {
+    return this.origin.intersect(other);
+  }
+  @Override
+  float getWidth() {
+    return this.origin.getWidth();
+  }
+  @Override
+  float getHeight() {
+    return this.origin.getHeight();
   }
 }

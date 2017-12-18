@@ -60,13 +60,16 @@ class BasicCanon implements Canon {
     fireCooldown -= dt;
   }
   GameEntity createProjectile(final GameEntity parent) {
-    return new CollisionObject
-      (new SpritedObject
-       (new DynamicObject
-        (new ExpirableObject
-         (game.createEntity(parent.owner(), parent.getX(), parent.getY()), this.spec.projectileDurability()),
-         new DummyController(), this.direction),
-        this.projectileSprite));
+    return new DynamicObject
+      (new ExpirableObject
+       (game.createEntity(EntityType.PROJECTILE,
+                          parent.owner(),
+                          this.projectileSprite,
+                          parent.getX(),
+                          parent.getY()),
+        this.spec.projectileDurability()),
+       new DummyController(),
+       this.direction);
   }
   void trigger(final GameEntity entity) {
     if(fireCooldown <= 0) {
