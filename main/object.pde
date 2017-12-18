@@ -172,6 +172,10 @@ class GameEntityWrap<T extends GameEntity> implements GameEntity {
     this.origin = origin;
   }
   @Override
+  EntityType getType() {
+    return this.origin.getType();
+  }
+  @Override
   Player owner() {
     return this.origin.owner();
   }
