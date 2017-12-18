@@ -17,6 +17,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+enum EntityType {
+  WORLD(-1),
+  SHIP(0),
+  PROJECTILE(1),
+  STATIC(2),
+  BONUS(3);
+
+  final int id;
+  EntityType(final int id) {
+    this.id = id;
+  }
+}
+
 interface Updatable {
   void update(final float dt);
 }
