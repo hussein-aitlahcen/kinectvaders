@@ -33,7 +33,7 @@ class GameImpl extends GameEntityImpl implements Game {
   int nextEntityId;
   final ArrayDeque<GameEvent> eventQueue;
   final Atlas atlas;
-  GameImpl(int x, int y) {
+  GameImpl(final int x, final int y) {
     super(EntityType.WORLD, Player.NEUTRAL, 0, x, y, new DummyCollisionBehavior());
     this.nextEntityId = 1;
     this.eventQueue = new ArrayDeque<GameEvent>();
@@ -53,12 +53,12 @@ class GameImpl extends GameEntityImpl implements Game {
     super.update(dt);
     final ArrayList<GameEntity> entities = children();
     for(int i = 0; i < entities.size() - 1; i++) {
+      final GameEntity a = entities.get(i);
       for(int j = i + 1; j < entities.size(); j++) {
-        final GameEntity a = entities.get(i);
         final GameEntity b = entities.get(j);
         if(a.shouldBeDestroyed()) {
           onEvent(new DestructionEvent(a));
-          continue;
+          break;
         }
         if(b.shouldBeDestroyed()) {
           continue;
