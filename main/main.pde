@@ -28,6 +28,7 @@ Game game;
 void setup() {
   size(1600, 1000);
   imageMode(CENTER);
+  rectMode(CENTER);
   keys = new HashMap<Integer, Boolean>();
   tickStep = 1000 / 128;
   nextTick = 0;
