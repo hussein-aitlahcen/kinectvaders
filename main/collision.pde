@@ -47,16 +47,17 @@ class CollisionEffectObject extends GameEntityWrap<GameEntity> {
   void collides(final GameEntity entity) {
     super.collides(entity);
     addChild
-      (new ExpirableObject
-       (new SpritedObject
-        (createChild
-         (EntityType.EFFECT,
-          0,
-          0,
-          this.sprite.getWidth(),
-          this.sprite.getHeight()),
-         this.sprite),
-        this.duration));
+      (new ParentPositionObject
+       (new ExpirableObject
+        (new SpritedObject
+         (createChild
+          (EntityType.EFFECT,
+           this.getX(),
+           this.getY(),
+           this.sprite.getWidth(),
+           this.sprite.getHeight()),
+          this.sprite),
+         this.duration)));
   }
 }
 
