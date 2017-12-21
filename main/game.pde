@@ -27,10 +27,12 @@ class GameImpl extends GameEntityImpl implements Game {
   int nextEntityId;
   final Atlas atlas;
   GameImpl(final int x, final int y) {
-    super(EntityType.WORLD, Player.NEUTRAL, "world", x, y);
+    super(null, EntityType.WORLD, Player.NEUTRAL, 0, x, y, 0, 0, 0);
     this.nextEntityId = 1;
     this.atlas = setupAtlas();
-    addChild(createAlly(400, 500, "playerShip1_green.png"));
+    GameEntity ship = createAlly(400, 500, "playerShip1_green.png");
+    // ship.addChild(createAlly(50, 0, "playerShip1_green.png"));
+    addChild(ship);
     addChild(createStatic(Player.ENEMY, 400, 600, atlas.get("meteorBrown_big1.png")));
     addChild(createEnemy(400, 200, "enemyBlack1.png"));
   }
@@ -49,7 +51,7 @@ class GameImpl extends GameEntityImpl implements Game {
         if(!b.isActive()) {
           continue;
         }
-        if(a.owner() != b.owner()) {
+        if(a.getOwner() != b.getOwner()) {
           if(a.intersect(b) && b.intersect(a)) {
             a.collides(b);
             b.collides(a);
@@ -91,7 +93,7 @@ class GameImpl extends GameEntityImpl implements Game {
                         new AiController(),
                         sprite,
                         "laserRed08.png",
-                        4,
+                        1000,
                         createBasicCanon("laserRed03.png", "laserRed08.png", new PVector(0, 1)));
 
   }
@@ -123,7 +125,8 @@ class GameImpl extends GameEntityImpl implements Game {
              new PVector(500, 500)),
             0.05),
            atlas.get(collisionSprite),
-           0.5),
+           0.5,
+           100),
           durability),
          Collision.IGNORE_OWNER(player)),
         0, 30),
@@ -136,13 +139,15 @@ class GameImpl extends GameEntityImpl implements Game {
                           final float y) {
     return new SpritedObject
       (new GameEntityImpl
-       (type,
+       (this,
+        type,
         player,
-        id + "/" + player + "/" + type + "/" + nextEntityId++,
+        getNextChildId(),
         x,
         y,
         sprite.getWidth(),
-        sprite.getHeight()),
+        sprite.getHeight(),
+        0),
        sprite);
   }
 }

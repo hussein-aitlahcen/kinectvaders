@@ -24,26 +24,6 @@ interface Moveable extends GameEntity {
   void setMaxVelocity(final PVector maxVelocity);
 }
 
-class ParentPositionObject extends GameEntityWrap<GameEntity> {
-  PMatrix parentMatrix;
-  ParentPositionObject(final GameEntity origin) {
-    super(origin);
-  }
-  @Override
-  void beginDraw() {
-    parentMatrix = getMatrix();
-    popMatrix();
-    super.beginDraw();
-  }
-  @Override
-  void endDraw() {
-    super.endDraw();
-    resetMatrix();
-    pushMatrix();
-    setMatrix(parentMatrix);
-  }
-}
-
 class DynamicObject extends GameEntityWrap<GameEntity> implements Moveable {
   final Controller controller;
   PVector velocity;
@@ -63,17 +43,15 @@ class DynamicObject extends GameEntityWrap<GameEntity> implements Moveable {
   @Override
   void update(final float dt) {
     super.update(dt);
-    final PVector impulsion = this.controller
-      .impulsion()
-      .normalize();
+    final PVector impulsion = this.controller.impulsion().normalize();
     if(impulsion.x != 0) {
       this.velocity.x = this.maxVelocity.x * impulsion.x;
     }
     if(impulsion.y != 0) {
       this.velocity.y = this.maxVelocity.y * impulsion.y;
     }
-    this.origin.setX(this.origin.getX() + this.velocity.x * dt);
-    this.origin.setY(this.origin.getY() + this.velocity.y * dt);
+    this.setX(this.getX() + this.velocity.x * dt);
+    this.setY(this.getY() + this.velocity.y * dt);
   }
   @Override
   PVector getVelocity() {

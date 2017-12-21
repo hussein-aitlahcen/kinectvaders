@@ -95,15 +95,22 @@ class CanonObject extends GameEntityWrap<GameEntity> {
     this.fireCooldown -= dt;
     if(fireCooldown <= 0) {
       fireCooldown = 1 / canon.getFiringRate();
-      addChild
-        (new ParentPositionObject
+      getParent().addChild
          (new ExpirableObject
           (new CollisionObject
            (new DurableObject
             (new CollisionEffectObject
              (new DynamicObject
               (new SpritedObject
-               (this.createChild(EntityType.PROJECTILE, this.getX(), this.getY(), canon.getSprite().getWidth(), canon.getSprite().getWidth()),
+               (new GameEntityImpl(this.getParent(),
+                                   EntityType.PROJECTILE,
+                                   this.getOwner(),
+                                   this.getNextChildId(),
+                                   getX(),
+                                   getY(),
+                                   canon.getSprite().getWidth(),
+                                   canon.getSprite().getWidth(),
+                                   0f),
                 canon.getSprite()),
                new DummyController(),
                canon.getVelocity(),
@@ -111,8 +118,8 @@ class CanonObject extends GameEntityWrap<GameEntity> {
               canon.getCollisionSprite(),
               canon.getCollisionDuration()),
              canon.getDurability()),
-             Collision.IGNORE_OWNER(this.owner())),
-            canon.getDuration())));
+             Collision.IGNORE_OWNER(this.getOwner())),
+           canon.getDuration()));
     }
   }
 }

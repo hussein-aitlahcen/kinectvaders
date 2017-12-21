@@ -22,16 +22,23 @@ interface Visible extends GameEntity {
 }
 
 class SpritedObject extends GameEntityWrap<GameEntity> implements Visible {
+  final float opacity;
   final Sprite sprite;
   SpritedObject(final GameEntity origin, final Sprite sprite) {
+    this(origin, sprite, 255);
+  }
+  SpritedObject(final GameEntity origin, final Sprite sprite, final float opacity) {
     super(origin);
+    this.opacity = opacity;
     this.sprite = sprite;
   }
   @Override
   void beginDraw() {
     super.beginDraw();
     if(isActive()) {
+      tint(255, this.opacity);
       image(this.sprite.img, 0, 0);
+      tint(255, 255);
     }
   }
   Sprite getSprite() {

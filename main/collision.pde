@@ -29,7 +29,7 @@ static class Collision {
   static final Predicate<GameEntity> IGNORE_OWNER(final Player player) {
     return new Predicate<GameEntity>() {
       public boolean test(final GameEntity entity) {
-        return entity.owner() == player;
+        return entity.getOwner() == player;
       }
     };
   }
@@ -38,26 +38,35 @@ static class Collision {
 class CollisionEffectObject extends GameEntityWrap<GameEntity> {
   final Sprite sprite;
   final float duration;
+  final float opacity;
   CollisionEffectObject(final GameEntity origin, final Sprite sprite, final float duration) {
+    this(origin, sprite, duration, 255);
+  }
+  CollisionEffectObject(final GameEntity origin, final Sprite sprite, final float duration, final float opacity) {
     super(origin);
     this.sprite = sprite;
     this.duration = duration;
+    this.opacity = opacity;
   }
   @Override
   void collides(final GameEntity entity) {
     super.collides(entity);
-    addChild
-      (new ParentPositionObject
+    this.getParent().addChild
        (new ExpirableObject
         (new SpritedObject
-         (createChild
-          (EntityType.EFFECT,
+         (new GameEntityImpl
+          (this.getParent(),
+           EntityType.EFFECT,
+           this.getOwner(),
+           this.getParent().getNextChildId(),
            this.getX(),
            this.getY(),
            this.sprite.getWidth(),
-           this.sprite.getHeight()),
-          this.sprite),
-         this.duration)));
+           this.sprite.getHeight(),
+           0),
+          this.sprite,
+          this.opacity),
+         this.duration));
   }
 }
 
@@ -89,15 +98,15 @@ class CollisionObject extends GameEntityWrap<Durable> implements Durable {
     this.origin.setDurability(durability);
   }
   @Override
-  boolean intersect(final Rectangle other) {
+  boolean intersect(final GameEntity other) {
     final float halfWidth = this.getWidth() / 2;
     final float halfHeight = this.getHeight() / 2;
-    final float upperLeftX = this.getX() - halfWidth;
-    final float upperLeftY = this.getY() - halfHeight;
+    final float upperLeftX = this.getAbsX() - halfWidth;
+    final float upperLeftY = this.getAbsY() - halfHeight;
     final float halfWidthA = other.getWidth() / 2;
     final float halfHeightA = other.getHeight() / 2;
-    final float upperLeftXA = other.getX() - halfWidthA;
-    final float upperLeftYA = other.getY() - halfHeightA;
+    final float upperLeftXA = other.getAbsX() - halfWidthA;
+    final float upperLeftYA = other.getAbsY() - halfHeightA;
     if(upperLeftX + this.getWidth() < upperLeftXA || upperLeftY + this.getHeight() < upperLeftYA) {
       return false;
     }
