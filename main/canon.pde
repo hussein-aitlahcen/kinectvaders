@@ -18,77 +18,101 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 interface Canon {
-  void update(final float dt);
-  void trigger(final GameEntity entity);
-}
-
-interface CanonSpec {
-  float projectileDurability();
-  float projectileVelocity();
-  float firingRate();
-}
-
-class BasicCanonSpec implements CanonSpec {
-  @Override
-  float projectileDurability() {
-    return 2;
-  }
-  @Override
-  float projectileVelocity() {
-    return 500;
-  }
-  @Override
-  float firingRate() {
-    return 2;
-  }
+  int getDurability();
+  float getDuration();
+  PVector getVelocity();
+  float getFiringRate();
+  Sprite getSprite();
+  Sprite getCollisionSprite();
+  float getCollisionDuration();
 }
 
 class BasicCanon implements Canon {
-  final CanonSpec spec;
-  final Sprite projectileSprite;
-  final Game game;
-  final PVector direction;
-  float fireCooldown;
-  BasicCanon(final CanonSpec spec, final Sprite projectileSprite, final PVector direction, final Game game) {
-    this.spec = spec;
-    this.projectileSprite = projectileSprite;
-    this.game = game;
-    this.direction = PVector.mult(direction, spec.projectileVelocity());
-    this.fireCooldown = 0;
+  final Sprite sprite;
+  final Sprite collisionSprite;
+  final PVector velocity;
+  final float duration;
+  final int durability;
+  final float firingRate;
+  final float collisionDuration;
+  BasicCanon(final Sprite sprite,
+             final Sprite collisionSprite,
+             final PVector direction,
+             final float velocity,
+             final float duration,
+             final int durability,
+             final float firingRate,
+             final float collisionDuration) {
+    this.sprite = sprite;
+    this.collisionSprite = collisionSprite;
+    this.velocity = PVector.mult(direction, velocity);
+    this.duration = duration;
+    this.durability = durability;
+    this.firingRate = firingRate;
+    this.collisionDuration = collisionDuration;
   }
-  void update(final float dt) {
-    fireCooldown -= dt;
+  @Override
+  float getDuration() {
+    return this.duration;
   }
-  GameEntity createProjectile(final GameEntity parent) {
-    return new DynamicObject
-      (new ExpirableObject
-       (game.createEntity(EntityType.PROJECTILE,
-                          parent.owner(),
-                          this.projectileSprite,
-                          parent.getX(),
-                          parent.getY()),
-        this.spec.projectileDurability()),
-       new DummyController(),
-       this.direction);
+  @Override
+  int getDurability() {
+    return this.durability;
   }
-  void trigger(final GameEntity entity) {
-    if(fireCooldown <= 0) {
-      fireCooldown = 1 / spec.firingRate();
-      game.addChild(createProjectile(entity));
-    }
+  @Override
+  PVector getVelocity() {
+    return this.velocity;
+  }
+  @Override
+  float getFiringRate() {
+    return this.firingRate;
+  }
+  @Override
+  Sprite getSprite() {
+    return this.sprite;
+  }
+  @Override
+  Sprite getCollisionSprite() {
+    return this.collisionSprite;
+  }
+  @Override
+  float getCollisionDuration() {
+    return this.collisionDuration;
   }
 }
 
 class CanonObject extends GameEntityWrap<GameEntity> {
   final Canon canon;
+  float fireCooldown;
   CanonObject(final GameEntity origin, final Canon canon) {
     super(origin);
     this.canon = canon;
+    this.fireCooldown = 0;
   }
   @Override
-  void update(float dt) {
+  void update(final float dt) {
     super.update(dt);
-    canon.update(dt);
-    canon.trigger(this);
+    this.fireCooldown -= dt;
+    if(fireCooldown <= 0) {
+      fireCooldown = 1 / canon.getFiringRate();
+      addChild
+        (new ParentPositionObject
+         (new ExpirableObject
+          (new CollisionObject
+           (new DurableObject
+            (new CollisionEffectObject
+             (new DynamicObject
+              (new SpritedObject
+               (this.createChild(EntityType.PROJECTILE, this.getX(), this.getY(), canon.getSprite().getWidth(), canon.getSprite().getWidth()),
+                canon.getSprite()),
+               new DummyController(),
+               canon.getVelocity(),
+               canon.getVelocity()),
+              canon.getCollisionSprite(),
+              canon.getCollisionDuration()),
+             canon.getDurability()),
+             Collision.IGNORE_OWNER(this.owner())),
+            canon.getDuration())));
+    }
   }
 }

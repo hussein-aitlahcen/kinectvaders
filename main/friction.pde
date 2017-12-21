@@ -24,14 +24,13 @@ interface Frictionable extends GameEntity {
 
 class FrictionObject extends GameEntityWrap<Moveable> implements Frictionable, Moveable {
   float friction;
-  FrictionObject(final Moveable origin) {
+  FrictionObject(final Moveable origin, final float friction) {
     super(origin);
-    this.friction = 0.05;
+    this.friction = friction;
   }
   @Override
   void update(final float dt) {
     super.update(dt);
-    // simulate friction
     final float frictionFactor = 1.0 - friction;
     final PVector velocity = this.getVelocity();
     final PVector newVelocity = new PVector(velocity.x * frictionFactor,

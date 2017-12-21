@@ -1,4 +1,4 @@
-// sprite.pde ---
+// text.pde ---
 
 // Copyright (C) 2017 Hussein Ait-Lahcen
 
@@ -17,24 +17,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-interface Visible extends GameEntity {
-  Sprite getSprite();
-}
-
-class SpritedObject extends GameEntityWrap<GameEntity> implements Visible {
-  final Sprite sprite;
-  SpritedObject(final GameEntity origin, final Sprite sprite) {
+class RatioHud extends GameEntityWrap<Durable> {
+  final float x;
+  final float y;
+  RatioHud(final Durable origin, final float x, final float y) {
     super(origin);
-    this.sprite = sprite;
+    this.x = x;
+    this.y = y;
   }
   @Override
   void beginDraw() {
     super.beginDraw();
     if(isActive()) {
-      image(this.sprite.img, 0, 0);
+      pushMatrix();
+      translate(x, y);
+      final float w = 60;
+      final float h = 10;
+      final float ratio = (float)Math.max(1, this.origin.getDurability()) / this.origin.getMaxDurability();
+      if(ratio > 0.5) {
+        fill(50, 200, 50);
+      } else {
+        fill(255, 69, 0);
+      }
+      rect(this.x, this.y, w * ratio, h);
+      popMatrix();
     }
-  }
-  Sprite getSprite() {
-    return this.sprite;
   }
 }

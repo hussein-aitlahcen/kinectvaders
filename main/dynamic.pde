@@ -24,6 +24,26 @@ interface Moveable extends GameEntity {
   void setMaxVelocity(final PVector maxVelocity);
 }
 
+class ParentPositionObject extends GameEntityWrap<GameEntity> {
+  PMatrix parentMatrix;
+  ParentPositionObject(final GameEntity origin) {
+    super(origin);
+  }
+  @Override
+  void beginDraw() {
+    parentMatrix = getMatrix();
+    popMatrix();
+    super.beginDraw();
+  }
+  @Override
+  void endDraw() {
+    super.endDraw();
+    resetMatrix();
+    pushMatrix();
+    setMatrix(parentMatrix);
+  }
+}
+
 class DynamicObject extends GameEntityWrap<GameEntity> implements Moveable {
   final Controller controller;
   PVector velocity;

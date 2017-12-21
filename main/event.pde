@@ -18,12 +18,19 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 interface GameEvent {
-    static final GameEvent BASIC_NO_OPERATION = new GameEvent() {};
+  static final GameEvent BASIC_NO_OPERATION = new GameEvent() {};
 }
 
 final class DestructionEvent implements GameEvent {
-    final GameEntity entity;
-    DestructionEvent(final GameEntity entity) {
-        this.entity = entity;
-    }
+  final GameEntity entity;
+  DestructionEvent(final GameEntity entity) {
+    this.entity = entity;
+  }
+}
+
+final class HitEvent implements GameEvent {
+  final GameEntity entity;
+  HitEvent(final GameEntity entity) {
+    this.entity = entity;
+  }
 }

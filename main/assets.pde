@@ -24,10 +24,10 @@ class Sprite {
     this.img = img;
     this.name = name;
   }
-  int width() {
+  int getWidth() {
     return img.width;
   }
-  int height() {
+  int getHeight() {
     return img.height;
   }
 }

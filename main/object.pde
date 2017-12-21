@@ -22,7 +22,8 @@ enum EntityType {
   SHIP(0),
   PROJECTILE(1),
   STATIC(2),
-  BONUS(3);
+  EFFECT(3),
+  BONUS(4);
 
   final int id;
   EntityType(final int id) {
@@ -40,8 +41,10 @@ interface Drawable {
 }
 
 interface Composite extends Updatable {
+  GameEntity createChild(final EntityType type, final float x, final float y, final float width, final float height);
   void addChild(final GameEntity child);
   void removeChild(final GameEntity child);
+  void updateChildren(final float dt);
   ArrayList<GameEntity> children();
 }
 
@@ -52,10 +55,12 @@ interface Positionable {
   void setX(final float x);
   void setY(final float y);
   void setAngle(final float angle);
+  void pushM();
+  void popM();
 }
 
 interface Identifiable {
-  int getId();
+  String getId();
 }
 
 interface GameEntity extends Composite,
@@ -67,15 +72,16 @@ interface GameEntity extends Composite,
   Player owner();
   void setDestroyable(final boolean destroyable);
   boolean shouldBeDestroyed();
-  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b);
+  boolean isActive();
+  void collides(final GameEntity entity);
 }
 
 class GameEntityImpl implements GameEntity {
-  final int id;
+  final String id;
   final EntityType type;
   final ArrayList<GameEntity> childs;
   final Player owner;
-  final CollisionBehavior collisionBehavior;
+  int nextChildId;
   float x;
   float y;
   float angle;
@@ -84,31 +90,29 @@ class GameEntityImpl implements GameEntity {
   boolean destroyable;
   GameEntityImpl(final EntityType type,
                  final Player owner,
-                 final int id,
+                 final String id,
                  final float x,
-                 final float y,
-                 final CollisionBehavior collisionBehavior) {
-    this(type, owner, id, x, y, 0, 0, collisionBehavior);
+                 final float y) {
+    this(type, owner, id, x, y, 0, 0);
   }
   GameEntityImpl(final EntityType type,
                  final Player owner,
-                 final int id,
+                 final String id,
+                 final float x,
+                 final float y,
+                 final float width,
+                 final float height) {
+    this(type, owner, id, x, y, width, height, 0);
+  }
+  GameEntityImpl(final EntityType type,
+                 final Player owner,
+                 final String id,
                  final float x,
                  final float y,
                  final float width,
                  final float height,
-                 final CollisionBehavior collisionBehavior) {
-    this(type, owner, id, x, y, width, height, 0, collisionBehavior);
-  }
-  GameEntityImpl(final EntityType type,
-                 final Player owner,
-                 final int id,
-                 final float x,
-                 final float y,
-                 final float width,
-                 final float height,
-                 final float angle,
-                 final CollisionBehavior collisionBehavior) {
+                 final float angle) {
+    this.nextChildId = 0;
     this.type = type;
     this.id = id;
     this.x = x;
@@ -118,7 +122,6 @@ class GameEntityImpl implements GameEntity {
     this.angle = angle;
     this.owner = owner;
     this.destroyable = false;
-    this.collisionBehavior = collisionBehavior;
     this.childs = new ArrayList<GameEntity>();
   }
   @Override
@@ -130,12 +133,16 @@ class GameEntityImpl implements GameEntity {
     return this.owner;
   }
   @Override
-  int getId() {
+  String getId() {
     return this.id;
   }
   @Override
   boolean shouldBeDestroyed() {
-    return this.destroyable;
+    return this.children().size() == 0 && this.destroyable;
+  }
+  @Override
+  boolean isActive() {
+    return !this.destroyable;
   }
   @Override
   void setDestroyable(final boolean destroyable) {
@@ -152,15 +159,33 @@ class GameEntityImpl implements GameEntity {
   }
   @Override
   void update(final float dt) {
+  }
+  @Override
+  void updateChildren(final float dt) {
     for(int i = this.childs.size() - 1; i >= 0; i--) {
-      this.childs.get(i).update(dt);
+      final GameEntity child = this.childs.get(i);
+      if(child.isActive()) {
+        child.update(dt);
+      }
+      child.updateChildren(dt);
+      if(child.shouldBeDestroyed()) {
+        this.childs.remove(child);
+      }
     }
   }
   @Override
-  void beginDraw() {
+  void pushM() {
     pushMatrix();
     translate(this.x, this.y);
     rotate(this.angle);
+  }
+  @Override
+  void popM() {
+    popMatrix();
+  }
+  @Override
+  void beginDraw() {
+    pushM();
   }
   @Override
   void endDraw() {
@@ -168,7 +193,11 @@ class GameEntityImpl implements GameEntity {
       child.beginDraw();
       child.endDraw();
     }
-    popMatrix();
+    popM();
+  }
+  @Override
+  GameEntity createChild(final EntityType type, final float x, final float y, final float width, final float height) {
+    return new GameEntityImpl(type, this.owner, this.id + "/" + type + "/" + nextChildId++, x, y, width, height);
   }
   @Override
   void addChild(final GameEntity child) {
@@ -203,26 +232,11 @@ class GameEntityImpl implements GameEntity {
     this.angle = angle;
   }
   @Override
-  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b) {
-    return this.collisionBehavior.collides(a, b);
+  void collides(final GameEntity entity) {
   }
   @Override
   boolean intersect(final Rectangle other) {
-    final float halfWidth = this.getWidth() / 2;
-    final float halfHeight = this.getHeight() / 2;
-    final float upperLeftX = this.getX() - halfWidth;
-    final float upperLeftY = this.getY() - halfHeight;
-    final float halfWidthA = other.getWidth() / 2;
-    final float halfHeightA = other.getHeight() / 2;
-    final float upperLeftXA = other.getX() - halfWidthA;
-    final float upperLeftYA = other.getY() - halfHeightA;
-    if(upperLeftX + this.getWidth() < upperLeftXA || upperLeftY + this.getHeight() < upperLeftYA) {
-      return false;
-    }
-    if(upperLeftXA + other.getWidth() < upperLeftX || upperLeftYA + other.getHeight() < upperLeftYA) {
-      return false;
-    }
-    return true;
+    return false;
   }
   @Override
   float getWidth() {
@@ -248,12 +262,16 @@ class GameEntityWrap<T extends GameEntity> implements GameEntity {
     return this.origin.owner();
   }
   @Override
-  int getId() {
+  String getId() {
     return this.origin.getId();
   }
   @Override
   boolean shouldBeDestroyed() {
     return this.origin.shouldBeDestroyed();
+  }
+  @Override
+  boolean isActive() {
+    return this.origin.isActive();
   }
   @Override
   void setDestroyable(final boolean destroyable) {
@@ -268,12 +286,28 @@ class GameEntityWrap<T extends GameEntity> implements GameEntity {
     this.origin.update(dt);
   }
   @Override
+  void updateChildren(final float dt) {
+    this.origin.updateChildren(dt);
+  }
+  @Override
+  void pushM() {
+    this.origin.pushM();
+  }
+  @Override
+  void popM() {
+    this.origin.popM();
+  }
+  @Override
   void beginDraw() {
     this.origin.beginDraw();
   }
   @Override
   void endDraw() {
     this.origin.endDraw();
+  }
+  @Override
+  GameEntity createChild(final EntityType type, final float x, final float y, final float width, final float height) {
+    return this.origin.createChild(type, x, y, width, height);
   }
   @Override
   void addChild(final GameEntity child) {
@@ -308,8 +342,8 @@ class GameEntityWrap<T extends GameEntity> implements GameEntity {
     this.origin.setAngle(angle);
   }
   @Override
-  ArrayList<GameEvent> collides(final GameEntity a, final GameEntity b) {
-    return this.origin.collides(a, b);
+  void collides(final GameEntity entity) {
+    this.origin.collides(entity);
   }
   @Override
   boolean intersect(final Rectangle other) {
