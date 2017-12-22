@@ -30,11 +30,15 @@ class GameImpl extends GameEntityImpl implements Game {
     super(null, EntityType.WORLD, Player.NEUTRAL, 0, x, y, 0, 0, 0);
     this.nextEntityId = 1;
     this.atlas = setupAtlas();
-    GameEntity ship = createAlly(400, 500, "playerShip1_green.png");
+    GameEntity ship = createAlly(400, 500, "playerShip1_red.png");
     // ship.addChild(createAlly(50, 0, "playerShip1_green.png"));
     addChild(ship);
     addChild(createStatic(Player.ENEMY, 400, 600, atlas.get("meteorBrown_big1.png")));
     addChild(createEnemy(400, 200, "enemyBlack1.png"));
+    addChild(createEnemy(200, 200, "enemyGreen4.png"));
+    addChild(createEnemy(500, 200, "enemyBlue5.png"));
+    addChild(createEnemy(600, 200, "enemyBlack2.png"));
+    addChild(createEnemy(700, 200, "enemyBlack3.png"));
   }
   @Override
   void update(final float dt) {
@@ -72,7 +76,7 @@ class GameImpl extends GameEntityImpl implements Game {
                           direction,
                           500,
                           2,
-                          1,
+                          20,
                           2,
                           0.5);
   }
@@ -82,7 +86,7 @@ class GameImpl extends GameEntityImpl implements Game {
                       y,
                       new KeyboardController(),
                       sprite,
-                      "playerShip1_damage1.png",
+                      sprite,
                       Integer.MAX_VALUE,
                       createBasicCanon("laserBlue03.png", "laserBlue08.png", new PVector(0, -1)));
   }
@@ -92,8 +96,8 @@ class GameImpl extends GameEntityImpl implements Game {
                         y,
                         new AiController(),
                         sprite,
-                        "laserRed08.png",
-                        1000,
+                        sprite,
+                        100,
                         createBasicCanon("laserRed03.png", "laserRed08.png", new PVector(0, 1)));
 
   }
@@ -125,8 +129,8 @@ class GameImpl extends GameEntityImpl implements Game {
              new PVector(500, 500)),
             0.05),
            atlas.get(collisionSprite),
-           0.5,
-           100),
+           0.15,
+           75),
           durability),
          Collision.IGNORE_OWNER(player)),
         0, 30),
