@@ -20,6 +20,8 @@
 HashMap<Integer, Boolean> keys;
 double nextTick;
 double tickStep;
+double nextDraw;
+double drawStep;
 double lastTick;
 int gameWidth = 1600;
 int gameHeight = 1000;
@@ -31,12 +33,14 @@ void setup() {
   rectMode(CENTER);
   keys = new HashMap<Integer, Boolean>();
   tickStep = 1000 / 128;
+  drawStep = 1000 / 40;
   nextTick = 0;
   game = new GameImpl(0, 0);
 }
 
-void draw() {
-  while(millis() < nextTick) {};
+void checkUpdate() {
+  if(millis() < nextTick)
+    return;
   double begin = millis();
   float dt = (float)(begin - lastTick) * 0.001;
   lastTick = begin;
@@ -46,6 +50,22 @@ void draw() {
   double end = millis();
   double lag = end - begin;
   nextTick = begin + tickStep - lag;
+}
+
+void checkDraw() {
+  if(millis() < nextDraw)
+    return;
+  double begin = millis();
+  game.beginDraw();
+  game.endDraw();
+  double end = millis();
+  double lag = end - begin;
+  nextDraw = begin + drawStep - lag;
+}
+
+void draw() {
+  checkUpdate();
+  checkDraw();
 }
 
 void keyPressed() {
